@@ -9,7 +9,7 @@ import {
   dataVersion,
 } from 'eu-vat-rates-data'
 
-const VERSION = '0.2.0'
+const VERSION = '0.2.1'
 const API_BASE = process.env.VATNODE_API_URL ?? 'https://api.vatnode.dev'
 const API_KEY = process.env.VATNODE_API_KEY
 const USER_AGENT = `vatnode-mcp/${VERSION} (+https://vatnode.dev)`
