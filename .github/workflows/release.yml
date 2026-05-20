@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish to npm via Trusted Publishing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          # Node 24 ships with npm >= 11, required for Trusted Publishing OIDC
+          # to authenticate the registry PUT (not just provenance signing).
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test
+      - name: Publish to npm
+        run: npm publish --provenance --access public

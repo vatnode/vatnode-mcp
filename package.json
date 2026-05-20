@@ -1,0 +1,54 @@
+{
+  "name": "vatnode-mcp",
+  "version": "0.2.0",
+  "description": "Official Model Context Protocol (MCP) server for vatnode — EU VAT validation, rates, and format checks for AI agents (Claude, Cursor, ChatGPT).",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "vat",
+    "vies",
+    "eu-vat",
+    "tax",
+    "claude",
+    "anthropic",
+    "vatnode"
+  ],
+  "license": "MIT",
+  "author": "vatnode",
+  "homepage": "https://vatnode.dev/docs/mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vatnode/vatnode-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vatnode/vatnode-mcp/issues",
+    "email": "support@vatnode.dev"
+  },
+  "type": "module",
+  "bin": {
+    "vatnode-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node test/smoke.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "eu-vat-rates-data": "^2026.5.20",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
