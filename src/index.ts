@@ -9,7 +9,7 @@ import {
   dataVersion,
 } from 'eu-vat-rates-data'
 
-const VERSION = '0.2.1'
+const VERSION = '0.3.0'
 const API_BASE = process.env.VATNODE_API_URL ?? 'https://api.vatnode.dev'
 const API_KEY = process.env.VATNODE_API_KEY
 const USER_AGENT = `vatnode-mcp/${VERSION} (+https://vatnode.dev)`
@@ -72,8 +72,16 @@ server.registerTool(
     title: 'List EU VAT rates',
     description:
       'Returns current VAT rates for all EU member states (plus XI for Northern Ireland). ' +
+      'Read-only and offline: no network call, no API key, no rate limit, no side effects. Takes no arguments. ' +
+      'Output: { rates: Array<{ countryCode, countryName, vatName, vatAbbr, currency, standardRate, reducedRates[], superReducedRate, parkingRate, vatNumberFormat, vatNumberPattern, updatedAt }>, count, updatedAt }. Rates are percentages (e.g. 25.5). ' +
       'Use when the user asks for an overview, a comparison across countries, or "all EU VAT rates". ' +
       'For a single country prefer get_country_vat_rates. Data is sourced from the EU Commission TEDB and updated daily. Free, no API key required.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {},
   },
   async () => {
@@ -88,8 +96,16 @@ server.registerTool(
     title: 'Get VAT rates for a country',
     description:
       'Returns the standard, reduced, super-reduced and parking VAT rates for a single European country, plus the VAT number format and regex. ' +
+      'Read-only and offline: no network call, no API key, no rate limit, no side effects. ' +
       'Accepts ISO 3166-1 alpha-2 codes (DE, FR, IT, …); also covers non-EU European jurisdictions where available (NO, CH, GB, UA, TR, …). ' +
+      'Output: { countryCode, countryName, vatName, vatAbbr, currency, standardRate, reducedRates[], superReducedRate, parkingRate, vatNumberFormat, vatNumberPattern, updatedAt }; rates are percentages and may be null where not applicable. Returns an error if the country code is unknown. ' +
       'Use when the user asks "what is the VAT rate in X" or needs the VAT number format for a country. Free, no API key required.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {
       countryCode: z
         .string()
@@ -110,8 +126,16 @@ server.registerTool(
     title: 'Check VAT number format',
     description:
       'Performs an offline syntactic check of a VAT number against the country-specific regex pattern. ' +
-      'Does NOT verify the VAT with VIES — use validate_vat_number for that. ' +
+      'Read-only and offline: no network call, no API key, no rate limit, no side effects. ' +
+      'Does NOT verify the VAT with VIES (a valid format does not mean the VAT is real or active) — use validate_vat_number for that. ' +
+      'Output: { input, normalized, countryCode, validFormat (boolean), error }; countryCode is null when the prefix is unknown. ' +
       'Use when the user wants a quick sanity check on the shape of a VAT ID without burning a quota call. Free, no API key required.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {
       vatId: z
         .string()
@@ -140,7 +164,17 @@ server.registerTool(
   {
     title: 'List supported countries',
     description:
-      'Returns the list of countries the vatnode MCP server has VAT data for. Distinguishes EU member states (eligible for full VIES validation) from other European jurisdictions (rate lookup only).',
+      'Returns every country the vatnode server has VAT data for (EU-27 + XI for Northern Ireland + ~17 other European jurisdictions such as NO, CH, GB, UA, TR). ' +
+      'Read-only and offline: no network call, no API key, no rate limit, no side effects. Takes no arguments. ' +
+      'Output: { countries: Array<{ countryCode, countryName, isEUMember, viesValidationSupported }>, count, euCount, updatedAt }, sorted by countryCode. ' +
+      '`viesValidationSupported: true` means validate_vat_number can do live VIES verification; non-EU jurisdictions are rate-lookup only. ' +
+      'Use to discover coverage or to pick a valid countryCode before calling get_country_vat_rates or validate_vat_number.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {},
   },
   async () => {
@@ -205,7 +239,14 @@ server.registerTool(
       'Verifies an EU VAT number against the official VIES service and returns validity, company name, address, registration date and other metadata. ' +
       'When the requester (your own VAT) is configured on the vatnode account, also returns a VIES consultation number — audit-grade proof of validation. ' +
       'Use whenever the user wants to confirm a VAT is real, look up the company behind a VAT, or needs evidence for accounting/compliance. ' +
-      'Requires a vatnode API key (free tier available). Only EU-27 + XI (Northern Ireland) are supported by VIES.',
+      'Side effects: makes an authenticated network call to api.vatnode.dev (which queries the EU VIES service) and consumes one request from your monthly quota; it is read-only (verifies, never mutates) and safe to retry. ' +
+      'Requires a vatnode API key (free tier available; set VATNODE_API_KEY). Only EU-27 + XI (Northern Ireland) are supported by VIES; other countries return an error.',
+    annotations: {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    },
     inputSchema: {
       vatId: z
         .string()
