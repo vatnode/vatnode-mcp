@@ -3,6 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/vatnode-mcp)](https://www.npmjs.com/package/vatnode-mcp)
 [![Tests](https://github.com/vatnode/vatnode-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/vatnode/vatnode-mcp/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![vatnode/vatnode-mcp MCP server](https://glama.ai/mcp/servers/vatnode/vatnode-mcp/badges/score.svg)](https://glama.ai/mcp/servers/vatnode/vatnode-mcp)
 
 Official [Model Context Protocol](https://modelcontextprotocol.io) server for **[vatnode](https://vatnode.dev)** — VAT validation and EU tax data for AI agents.
 
