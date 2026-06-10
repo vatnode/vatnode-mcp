@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "vatnode": {
+      "command": "npx",
+      "args": ["-y", "vatnode-mcp"],
+      "env": {
+        "VATNODE_API_KEY": ""
+      }
+    }
+  }
+}
