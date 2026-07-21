@@ -28,7 +28,7 @@ Lets AI assistants (Claude Desktop, Cursor, ChatGPT, Continue, Cline, …) look 
 
 Free tools work fully offline — data is bundled via [`eu-vat-rates-data`](https://www.npmjs.com/package/eu-vat-rates-data) and updated daily from the European Commission TEDB.
 
-`validate_vat_number` requires a vatnode API key. The free tier includes a monthly request quota — [get one in 30 seconds](https://vatnode.dev).
+`validate_vat_number` requires a vatnode API key. The free tier includes a monthly request quota — [get one in 30 seconds](https://vatnode.dev/login?ref=mcp-readme).
 
 ---
 
@@ -92,7 +92,7 @@ Any MCP-compatible client can connect — point it at `npx -y vatnode-mcp` and (
 - VIES consultation numbers (audit-grade proof of validation)
 - Per-key rate limiting + dashboard analytics
 
-[**Sign up free →**](https://vatnode.dev)
+[**Sign up free →**](https://vatnode.dev/login?ref=mcp-readme)
 
 ---
 

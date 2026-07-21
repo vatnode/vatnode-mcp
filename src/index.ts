@@ -9,7 +9,7 @@ import {
   dataVersion,
 } from 'eu-vat-rates-data'
 
-const VERSION = '0.3.0'
+const VERSION = '0.3.1'
 const API_BASE = process.env.VATNODE_API_URL ?? 'https://api.vatnode.dev'
 const API_KEY = process.env.VATNODE_API_KEY
 const USER_AGENT = `vatnode-mcp/${VERSION} (+https://vatnode.dev)`
@@ -206,7 +206,7 @@ async function callVatnodeApi(path: string, init?: RequestInit) {
       ok: false as const,
       error: err(
         'This tool requires a vatnode API key.',
-        'Set the VATNODE_API_KEY environment variable in your MCP client config. Get a free key at https://vatnode.dev (free tier includes a monthly request quota).',
+        'Set the VATNODE_API_KEY environment variable in your MCP client config. Get a free key at https://vatnode.dev/login?ref=mcp-tool (free tier includes a monthly request quota).',
       ),
     }
   }
