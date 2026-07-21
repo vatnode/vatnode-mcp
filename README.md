@@ -137,8 +137,11 @@ npm test
 Releases are published to npm via [Trusted Publishing](https://docs.npmjs.com/trusted-publishers) — no NPM_TOKEN secret, every release signed with [npm provenance](https://docs.npmjs.com/generating-provenance-statements).
 
 ```bash
-# bump version in package.json (and VERSION in src/index.ts), commit, then:
-git tag v0.2.1
+# bump the version in ALL of: package.json, src/index.ts (VERSION),
+# and server.json (top-level "version" + packages[0].version — the MCP
+# Registry publish reads server.json and rejects a duplicate version).
+# Commit, then:
+git tag v0.3.2
 git push --tags
 ```
 
