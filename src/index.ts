@@ -9,7 +9,7 @@ import {
   dataVersion,
 } from 'eu-vat-rates-data'
 
-const VERSION = '0.3.2'
+const VERSION = '1.1.0'
 const API_BASE = process.env.VATNODE_API_URL ?? 'https://api.vatnode.dev'
 const API_KEY = process.env.VATNODE_API_KEY
 const USER_AGENT = `vatnode-mcp/${VERSION} (+https://vatnode.dev)`
@@ -237,7 +237,8 @@ server.registerTool(
     title: 'Validate EU VAT number',
     description:
       'Verifies an EU VAT number against the official VIES service and returns validity, company name, address, registration date and other metadata. ' +
-      'When the requester (your own VAT) is configured on the vatnode account, also returns a VIES consultation number — audit-grade proof of validation. ' +
+      'The audit-grade VIES consultation number (`consultationNumber`) is produced when a requester VAT is configured once in the vatnode dashboard Settings — a one-time account setup, not a per-call parameter. ' +
+      'With a requester configured, every response is either a success with a non-null `consultationNumber` or an error; without one, `consultationNumber` is null and national-registry fallback stays enabled. ' +
       'Use whenever the user wants to confirm a VAT is real, look up the company behind a VAT, or needs evidence for accounting/compliance. ' +
       'Side effects: makes an authenticated network call to api.vatnode.dev (which queries the EU VIES service) and consumes one request from your monthly quota; it is read-only (verifies, never mutates) and safe to retry. ' +
       'Requires a vatnode API key (free tier available; set VATNODE_API_KEY). Only EU-27 + XI (Northern Ireland) are supported by VIES; other countries return an error.',
@@ -254,33 +255,11 @@ server.registerTool(
         .describe(
           'EU VAT number, with country prefix. Spaces and dashes are stripped. Examples: "DE123456789", "IE6388047V", "FR12345678901".',
         ),
-      requesterCountryCode: z
-        .string()
-        .length(2)
-        .optional()
-        .describe(
-          'Optional: 2-letter country code of the party doing the check. Together with requesterVatNumber, asks VIES to issue an audit consultation number.',
-        ),
-      requesterVatNumber: z
-        .string()
-        .min(1)
-        .optional()
-        .describe(
-          'Optional: VAT number of the party doing the check. Pair with requesterCountryCode to get a consultation number.',
-        ),
     },
   },
-  async ({ vatId, requesterCountryCode, requesterVatNumber }) => {
+  async ({ vatId }) => {
     const normalized = normalizeVatId(vatId)
-    const params = new URLSearchParams()
-    if (requesterCountryCode && requesterVatNumber) {
-      params.set('requesterCountryCode', requesterCountryCode.toUpperCase())
-      params.set('requesterVatNumber', requesterVatNumber)
-    }
-    const qs = params.toString()
-    const result = await callVatnodeApi(
-      `/v1/vat/${encodeURIComponent(normalized)}${qs ? `?${qs}` : ''}`,
-    )
+    const result = await callVatnodeApi(`/v1/vat/${encodeURIComponent(normalized)}`)
     if (!result.ok) return result.error
     return ok(result.data)
   },

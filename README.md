@@ -10,7 +10,7 @@ Official [Model Context Protocol](https://modelcontextprotocol.io) server for **
 Lets AI assistants (Claude Desktop, Cursor, ChatGPT, Continue, Cline, …) look up VAT rates, check VAT number formats, and validate VAT IDs against the EU VIES service without leaving the chat.
 
 - **Free, offline** — VAT rates and format checks for 45 European countries, no account needed
-- **Live validation** — verify EU VAT numbers against VIES, get the registered company + audit-grade consultation number (requires a free [vatnode](https://vatnode.dev) API key)
+- **Live validation** — verify EU VAT numbers against VIES, get the registered company + audit-grade consultation number (requires a free [vatnode](https://vatnode.dev) API key; the consultation number is produced once you set your own VAT as requester in dashboard Settings)
 - **Five focused tools** — well-described for accurate agent tool selection
 - Pure stdio, zero hosted dependencies, runs locally via `npx`
 
@@ -24,7 +24,7 @@ Lets AI assistants (Claude Desktop, Cursor, ChatGPT, Continue, Cline, …) look 
 | `list_eu_vat_rates` | ✅ | All 27 EU member states (plus XI for Northern Ireland) at once |
 | `check_vat_format` | ✅ | Offline syntactic check of a VAT number against the country regex |
 | `list_supported_countries` | ✅ | All 45 supported countries and which ones support full VIES validation |
-| `validate_vat_number` | 🔑 | Live VIES validation — returns validity, company name, address, registration date, and optional consultation number for audit proof |
+| `validate_vat_number` | 🔑 | Live VIES validation — returns validity, company name, address, registration date, and (when a requester VAT is set in dashboard Settings) an audit-grade consultation number |
 
 Free tools work fully offline — data is bundled via [`eu-vat-rates-data`](https://www.npmjs.com/package/eu-vat-rates-data) and updated daily from the European Commission TEDB.
 
