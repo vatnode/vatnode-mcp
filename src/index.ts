@@ -9,7 +9,7 @@ import {
   dataVersion,
 } from 'eu-vat-rates-data'
 
-const VERSION = '1.1.1'
+const VERSION = '1.1.2'
 const API_BASE = process.env.VATNODE_API_URL ?? 'https://api.vatnode.dev'
 const API_KEY = process.env.VATNODE_API_KEY
 const USER_AGENT = `vatnode-mcp/${VERSION} (+https://vatnode.dev)`
@@ -63,6 +63,26 @@ const EU_COUNTRY_CODES = Object.keys(getAllRates())
   .sort()
 
 // ---------------------------------------------------------------------------
+// Output schemas — declared so callers can type-check responses. `ok()` already
+// returns structuredContent, which the SDK validates against these.
+// ---------------------------------------------------------------------------
+
+const rateShape = {
+  countryCode: z.string(),
+  countryName: z.string(),
+  vatName: z.string().nullable(),
+  vatAbbr: z.string().nullable(),
+  currency: z.string().nullable(),
+  standardRate: z.number().nullable(),
+  reducedRates: z.array(z.number()),
+  superReducedRate: z.number().nullable(),
+  parkingRate: z.number().nullable(),
+  vatNumberFormat: z.string().nullable(),
+  vatNumberPattern: z.string().nullable(),
+  updatedAt: z.string(),
+}
+
+// ---------------------------------------------------------------------------
 // Free tools — no API key, no network (data bundled via eu-vat-rates-data)
 // ---------------------------------------------------------------------------
 
@@ -83,6 +103,11 @@ server.registerTool(
       openWorldHint: false,
     },
     inputSchema: {},
+    outputSchema: {
+      rates: z.array(z.object(rateShape)),
+      count: z.number(),
+      updatedAt: z.string(),
+    },
   },
   async () => {
     const rates = EU_COUNTRY_CODES.map((c) => buildRate(c)!).filter(Boolean)
@@ -112,6 +137,7 @@ server.registerTool(
         .length(2)
         .describe('ISO 3166-1 alpha-2 country code, e.g. "DE", "FR", "IT".'),
     },
+    outputSchema: rateShape,
   },
   async ({ countryCode }) => {
     const rate = buildRate(countryCode.toUpperCase())
@@ -143,6 +169,13 @@ server.registerTool(
         .describe(
           'A VAT number, with or without spaces/dashes, with or without country prefix (e.g. "DE123456789", "IE 6388047 V").',
         ),
+    },
+    outputSchema: {
+      input: z.string(),
+      normalized: z.string(),
+      countryCode: z.string().nullable(),
+      validFormat: z.boolean(),
+      error: z.string().nullable(),
     },
   },
   async ({ vatId }) => {
@@ -176,6 +209,19 @@ server.registerTool(
       openWorldHint: false,
     },
     inputSchema: {},
+    outputSchema: {
+      countries: z.array(
+        z.object({
+          countryCode: z.string(),
+          countryName: z.string(),
+          isEUMember: z.boolean(),
+          viesValidationSupported: z.boolean(),
+        }),
+      ),
+      count: z.number(),
+      euCount: z.number(),
+      updatedAt: z.string(),
+    },
   },
   async () => {
     const all = getAllRates()
@@ -255,6 +301,25 @@ server.registerTool(
         .describe(
           'EU VAT number, with country prefix. Spaces and dashes are stripped. Examples: "DE123456789", "IE6388047V", "FR12345678901".',
         ),
+    },
+    outputSchema: {
+      valid: z.boolean(),
+      vatId: z.string(),
+      countryCode: z.string(),
+      countryName: z.string().nullable().optional(),
+      companyName: z.string().nullable().optional(),
+      companyAddress: z.string().nullable().optional(),
+      companyRegistrationDate: z.string().nullable().optional(),
+      companyForm: z.string().nullable().optional(),
+      industryDescription: z.string().nullable().optional(),
+      registryCode: z.string().nullable().optional(),
+      registryCodeName: z.string().nullable().optional(),
+      countryVat: z.object({}).passthrough().nullable().optional(),
+      specialTerritory: z.object({}).passthrough().nullable().optional(),
+      checkId: z.string().optional(),
+      verifiedAt: z.string().optional(),
+      consultationNumber: z.string().nullable().optional(),
+      source: z.string().optional(),
     },
   },
   async ({ vatId }) => {
