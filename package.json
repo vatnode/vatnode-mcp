@@ -1,6 +1,6 @@
 {
   "name": "vatnode-mcp",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "mcpName": "io.github.vatnode/vatnode-mcp",
   "description": "Official Model Context Protocol (MCP) server for vatnode — EU VAT validation, rates, and format checks for AI agents (Claude, Cursor, ChatGPT).",
   "keywords": [
@@ -16,7 +16,7 @@
   ],
   "license": "MIT",
   "author": "vatnode",
-  "homepage": "https://vatnode.dev/docs/mcp",
+  "homepage": "https://vatnode.dev/mcp",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vatnode/vatnode-mcp.git"
