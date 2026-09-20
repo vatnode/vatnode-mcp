@@ -283,7 +283,7 @@ server.registerTool(
     title: 'Validate EU VAT number',
     description:
       'Verifies an EU VAT number against the official VIES service and returns validity, company name, address, registration date and other metadata. ' +
-      'The audit-grade VIES consultation number (`consultationNumber`) is produced when a requester VAT is configured once in the vatnode dashboard Settings — a one-time account setup, not a per-call parameter. ' +
+      'The VIES consultation number (`consultationNumber`) is returned when a requester VAT is configured once in the vatnode dashboard Settings — a one-time account setup, not a per-call parameter. ' +
       'With a requester configured, every response is either a success with a non-null `consultationNumber` or an error; without one, `consultationNumber` is null and national-registry fallback stays enabled. ' +
       'Use whenever the user wants to confirm a VAT is real, look up the company behind a VAT, or needs evidence for accounting/compliance. ' +
       'Side effects: makes an authenticated network call to api.vatnode.dev (which queries the EU VIES service) and consumes one request from your monthly quota; it is read-only (verifies, never mutates) and safe to retry. ' +
