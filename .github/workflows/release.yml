@@ -25,7 +25,15 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        # Skips the publish when this version is already on the registry, so the
+        # workflow can be re-run to finish a release whose MCP Registry step failed.
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "vatnode-mcp@$VERSION" version >/dev/null 2>&1; then
+            echo "vatnode-mcp@$VERSION already published, skipping npm publish"
+          else
+            npm publish --provenance --access public
+          fi
 
       # Publish to the official MCP Registry (registry.modelcontextprotocol.io).
       # Uses GitHub OIDC — no secret needed; id-token: write is already granted
@@ -36,5 +44,21 @@ jobs:
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
       - name: Authenticate to MCP Registry (GitHub OIDC)
         run: ./mcp-publisher login github-oidc
+      # The MCP Registry re-checks npm for the version in server.json, and a
+      # freshly published tarball takes a moment to become resolvable there.
+      # Without this wait the step fails with a 404 on a release that is fine.
+      - name: Wait for npm to serve the new version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          for i in $(seq 1 30); do
+            if npm view "vatnode-mcp@$VERSION" version >/dev/null 2>&1; then
+              echo "vatnode-mcp@$VERSION is resolvable"
+              exit 0
+            fi
+            echo "attempt $i: not yet on registry, waiting"
+            sleep 10
+          done
+          echo "vatnode-mcp@$VERSION never became resolvable" >&2
+          exit 1
       - name: Publish to MCP Registry
         run: ./mcp-publisher publish
