@@ -86,6 +86,28 @@ test('initialize + tools/list returns 5 tools', async () => {
   await s.close()
 })
 
+// Regression guard for the 1.1.3/1.1.4 breakage: a closed outputSchema made
+// every SUCCESSFUL validate_vat_number fail client-side validation as soon as
+// the API returned a field this package had not declared.
+test('validate_vat_number tolerates response fields it does not declare', async () => {
+  const s = startServer()
+  await s.rpc('initialize', {
+    protocolVersion: '2025-06-18',
+    capabilities: {},
+    clientInfo: { name: 'test', version: '0' },
+  })
+  s.notify('notifications/initialized')
+  const list = await s.rpc('tools/list')
+  const tool = list.result.tools.find((t) => t.name === 'validate_vat_number')
+  assert.ok(tool.outputSchema, 'must publish an outputSchema')
+  assert.notEqual(
+    tool.outputSchema.additionalProperties,
+    false,
+    'outputSchema must not be closed — the API owns this shape and adds fields'
+  )
+  await s.close()
+})
+
 async function callTool(server, name, args) {
   await server.rpc('initialize', {
     protocolVersion: '2025-06-18',

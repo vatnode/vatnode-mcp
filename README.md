@@ -45,7 +45,7 @@ Add to your `claude_desktop_config.json` (macOS: `~/Library/Application Support/
       "command": "npx",
       "args": ["-y", "vatnode-mcp"],
       "env": {
-        "VATNODE_API_KEY": "vat_live_..."
+        "VATNODE_API_KEY": "vat_live_your_key_here"
       }
     }
   }
@@ -66,7 +66,7 @@ Settings → MCP → Add new server:
     "vatnode": {
       "command": "npx",
       "args": ["-y", "vatnode-mcp"],
-      "env": { "VATNODE_API_KEY": "vat_live_..." }
+      "env": { "VATNODE_API_KEY": "vat_live_your_key_here" }
     }
   }
 }

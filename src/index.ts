@@ -272,7 +272,13 @@ async function callVatnodeApi(path: string, init?: RequestInit) {
     const message =
       (body as { error?: { message?: string } }).error?.message ??
       `vatnode API returned ${res.status}`
-    return { ok: false as const, error: err(`${code}: ${message}`) }
+    // A rejected key looks identical to a missing one from inside the client:
+    // both end the call with nothing to act on. Say where the key comes from.
+    const hint =
+      res.status === 401
+        ? 'Check that VATNODE_API_KEY in your MCP client config holds a real key from the vatnode dashboard (https://vatnode.dev/dashboard/api-keys) and not the placeholder from the setup example.'
+        : undefined
+    return { ok: false as const, error: err(`${code}: ${message}`, hint) }
   }
   return { ok: true as const, data: body }
 }
@@ -302,25 +308,38 @@ server.registerTool(
           'EU VAT number, with country prefix. Spaces and dashes are stripped. Examples: "DE123456789", "IE6388047V", "FR12345678901".',
         ),
     },
-    outputSchema: {
-      valid: z.boolean(),
-      vatId: z.string(),
-      countryCode: z.string(),
-      countryName: z.string().nullable().optional(),
-      companyName: z.string().nullable().optional(),
-      companyAddress: z.string().nullable().optional(),
-      companyRegistrationDate: z.string().nullable().optional(),
-      companyForm: z.string().nullable().optional(),
-      industryDescription: z.string().nullable().optional(),
-      registryCode: z.string().nullable().optional(),
-      registryCodeName: z.string().nullable().optional(),
-      countryVat: z.object({}).passthrough().nullable().optional(),
-      specialTerritory: z.object({}).passthrough().nullable().optional(),
-      checkId: z.string().optional(),
-      verifiedAt: z.string().optional(),
-      consultationNumber: z.string().nullable().optional(),
-      source: z.string().optional(),
-    },
+    // `.passthrough()` is load-bearing, not tidiness. This schema mirrors a
+    // response shape owned by the API, and the API grows fields on its own
+    // release schedule. A closed schema turns every such addition into a
+    // protocol error on a *successful* check, because the client validates the
+    // structured content it receives against what this declares.
+    outputSchema: z
+      .object({
+        valid: z.boolean(),
+        vatId: z.string(),
+        countryCode: z.string(),
+        countryName: z.string().nullable().optional(),
+        companyName: z.string().nullable().optional(),
+        companyAddress: z.string().nullable().optional(),
+        companyRegistrationDate: z.string().nullable().optional(),
+        companyForm: z.string().nullable().optional(),
+        companyStatus: z.string().nullable().optional(),
+        companyAgeYears: z.number().nullable().optional(),
+        commercialName: z.string().nullable().optional(),
+        industryDescription: z.string().nullable().optional(),
+        secondaryActivities: z.array(z.string()).optional(),
+        website: z.string().nullable().optional(),
+        registryCode: z.string().nullable().optional(),
+        registryCodeName: z.string().nullable().optional(),
+        registryPrivacy: z.boolean().optional(),
+        countryVat: z.object({}).passthrough().nullable().optional(),
+        specialTerritory: z.object({}).passthrough().nullable().optional(),
+        checkId: z.string().optional(),
+        verifiedAt: z.string().optional(),
+        consultationNumber: z.string().nullable().optional(),
+        source: z.string().optional(),
+      })
+      .passthrough(),
   },
   async ({ vatId }) => {
     const normalized = normalizeVatId(vatId)
