@@ -348,6 +348,8 @@ server.registerTool(
         website: z.string().nullable().optional(),
         registryCode: z.string().nullable().optional(),
         registryCodeName: z.string().nullable().optional(),
+        taxId: z.string().nullable().optional(),
+        taxIdName: z.string().nullable().optional(),
         registryPrivacy: z.boolean().optional(),
         countryVat: z.object({}).passthrough().nullable().optional(),
         specialTerritory: z.object({}).passthrough().nullable().optional(),
