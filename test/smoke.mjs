@@ -137,6 +137,15 @@ test('get_country_vat_rates FI returns 25.5% (verifies fresh data)', async () =>
   await s.close()
 })
 
+test('get_country_vat_rates returns identifier names per language', async () => {
+  const s = startServer()
+  const fi = (await callTool(s, 'get_country_vat_rates', { countryCode: 'FI' })).result.structuredContent
+  assert.deepEqual(fi.identifiers.registryCodeName, { fi: 'Y-tunnus', sv: 'FO-nummer', en: 'Business ID' })
+  const es = (await callTool(s, 'get_country_vat_rates', { countryCode: 'ES' })).result.structuredContent
+  assert.equal(es.identifiers.registryCodeName, null)
+  await s.close()
+})
+
 test('get_country_vat_rates accepts lowercase', async () => {
   const s = startServer()
   const r = await callTool(s, 'get_country_vat_rates', { countryCode: 'fr' })

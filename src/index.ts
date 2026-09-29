@@ -9,7 +9,7 @@ import {
   dataVersion,
 } from 'eu-vat-rates-data'
 
-const VERSION = '1.1.5'
+const VERSION = '1.2.0'
 const API_BASE = process.env.VATNODE_API_URL ?? 'https://api.vatnode.dev'
 const API_KEY = process.env.VATNODE_API_KEY
 const USER_AGENT = `vatnode-mcp/${VERSION} (+https://vatnode.dev)`
@@ -50,6 +50,13 @@ function buildRate(countryCode: string) {
     parkingRate: r.parking,
     vatNumberFormat: r.format ?? null,
     vatNumberPattern: r.pattern ?? null,
+    identifiers: {
+      registryAuthorityName: r.identifiers.registry_authority_name,
+      registryName: r.identifiers.registry_name,
+      registryCodeName: r.identifiers.registry_code_name,
+      taxIdName: r.identifiers.tax_id_name,
+      vatIdName: r.identifiers.vat_id_name,
+    },
     updatedAt: dataVersion,
   }
 }
@@ -67,6 +74,9 @@ const EU_COUNTRY_CODES = Object.keys(getAllRates())
 // returns structuredContent, which the SDK validates against these.
 // ---------------------------------------------------------------------------
 
+// Names, never numbers, keyed by ISO 639-1 language: every official language plus "en".
+const localizedName = z.record(z.string()).nullable()
+
 const rateShape = {
   countryCode: z.string(),
   countryName: z.string(),
@@ -79,6 +89,13 @@ const rateShape = {
   parkingRate: z.number().nullable(),
   vatNumberFormat: z.string().nullable(),
   vatNumberPattern: z.string().nullable(),
+  identifiers: z.object({
+    registryAuthorityName: localizedName,
+    registryName: localizedName,
+    registryCodeName: localizedName,
+    taxIdName: localizedName,
+    vatIdName: localizedName,
+  }),
   updatedAt: z.string(),
 }
 
@@ -93,7 +110,7 @@ server.registerTool(
     description:
       'Returns current VAT rates for all EU member states (plus XI for Northern Ireland). ' +
       'Read-only and offline: no network call, no API key, no rate limit, no side effects. Takes no arguments. ' +
-      'Output: { rates: Array<{ countryCode, countryName, vatName, vatAbbr, currency, standardRate, reducedRates[], superReducedRate, parkingRate, vatNumberFormat, vatNumberPattern, updatedAt }>, count, updatedAt }. Rates are percentages (e.g. 25.5). ' +
+      'Output: { rates: Array<{ countryCode, countryName, vatName, vatAbbr, currency, standardRate, reducedRates[], superReducedRate, parkingRate, vatNumberFormat, vatNumberPattern, identifiers, updatedAt }>, count, updatedAt }. Rates are percentages (e.g. 25.5). `identifiers` holds the names (not numbers) of the company registrar, the company register, the register number, the tax ID and the VAT ID, each keyed by language (every official language plus "en") or null. ' +
       'Use when the user asks for an overview, a comparison across countries, or "all EU VAT rates". ' +
       'For a single country prefer get_country_vat_rates. Data is sourced from the EU Commission TEDB and updated daily. Free, no API key required.',
     annotations: {
@@ -123,7 +140,7 @@ server.registerTool(
       'Returns the standard, reduced, super-reduced and parking VAT rates for a single European country, plus the VAT number format and regex. ' +
       'Read-only and offline: no network call, no API key, no rate limit, no side effects. ' +
       'Accepts ISO 3166-1 alpha-2 codes (DE, FR, IT, …); also covers non-EU European jurisdictions where available (NO, CH, GB, UA, TR, …). ' +
-      'Output: { countryCode, countryName, vatName, vatAbbr, currency, standardRate, reducedRates[], superReducedRate, parkingRate, vatNumberFormat, vatNumberPattern, updatedAt }; rates are percentages and may be null where not applicable. Returns an error if the country code is unknown. ' +
+      'Output: { countryCode, countryName, vatName, vatAbbr, currency, standardRate, reducedRates[], superReducedRate, parkingRate, vatNumberFormat, vatNumberPattern, identifiers, updatedAt }; rates are percentages and may be null where not applicable. `identifiers` holds the names (not numbers) of the company registrar, the company register, the register number, the tax ID and the VAT ID, each keyed by language (every official language plus "en") or null, e.g. registryCodeName for FI is { fi: "Y-tunnus", sv: "FO-nummer", en: "Business ID" }. Returns an error if the country code is unknown. ' +
       'Use when the user asks "what is the VAT rate in X" or needs the VAT number format for a country. Free, no API key required.',
     annotations: {
       readOnlyHint: true,
